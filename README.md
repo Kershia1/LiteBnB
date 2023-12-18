@@ -4,7 +4,7 @@
 A revolutionary website which will "revolutionize the travel industry. It will allow home owners to rent out their homes to people on vacation, creating an alternative to hotels and bed and breakfasts".
 
 # Dependancies 
-Run npm install i 
+Run npm install i \n To install the following dependancies:
   bcrypt: 3.0.6,
   bcryptjs: 2.4.3,
   cookie-session: 1.4.0,
