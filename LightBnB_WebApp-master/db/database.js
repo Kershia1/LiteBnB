@@ -1,12 +1,10 @@
 const properties = require("./json/properties.json");
 const users = require("./json/users.json");
 
-// connecting postgres to the database
+//connecting postgres to the database
 const { Pool } = require('pg');
 
 //connection with more specific routing and security
-// const { Pool } = require('pg');
-
 const pool = new Pool({
   user: 'vagrant',
   password: '123',
@@ -14,9 +12,7 @@ const pool = new Pool({
   database: 'lightbnb'
 });
 
-pool.query(`SELECT title FROM properties LIMIT 10;`).then(response => {console.log(response)})
-
-/// Users
+// Users
 
 /**
  * Get a single user from the database given their email.
@@ -24,14 +20,16 @@ pool.query(`SELECT title FROM properties LIMIT 10;`).then(response => {console.l
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithEmail = function (email) {
-  let resolvedUser = null;
-  for (const userId in users) {
-    const user = users[userId];
-    if (user && user.email.toLowerCase() === email.toLowerCase()) {
-      resolvedUser = user;
-    }
-  }
-  return Promise.resolve(resolvedUser);
+
+  return pool 
+  .query(`SELECT * FROM users WHERE email = $1`, [email])
+  .then((result) => {
+    console.log(result.rows);
+    return result.rows[0];// only 1st user with matching email found
+  })
+  .catch((err) => {
+    console.log("Error running query: ", err.message);
+  });
 };
 
 /**
@@ -40,7 +38,17 @@ const getUserWithEmail = function (email) {
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithId = function (id) {
-  return Promise.resolve(users[id]);
+
+  return pool 
+  .query(`SELECT * FROM users WHERE id = $1`, [id])
+  .then((result) => {
+    console.log(result.rows)
+    return result.rows[0];
+  })
+  .catch((err) => {
+    console.log(err.message);
+  })
+  // return Promise.resolve(users[id]);
 };
 
 /**
@@ -49,10 +57,17 @@ const getUserWithId = function (id) {
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser = function (user) {
-  const userId = Object.keys(users).length + 1;
-  user.id = userId;
-  users[userId] = user;
-  return Promise.resolve(user);
+
+  return pool 
+  .query(`INSERT INTO users (name, email, password) 
+  VALUES ($1,$2,$3) 
+  RETURNING *;`, [user.name, user.email, user.password]) //THIS IS A CLAUSE TO RETURN EXECUTED DATA 
+  .then((results) => {
+    return results.rows[0];
+  })
+  .catch((err) => {
+    console.log(err.message);
+  })
 };
 
 /// Reservations
@@ -75,25 +90,15 @@ const getAllReservations = function (guest_id, limit = 10) {
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 const getAllProperties = function (options, limit = 10) {
-  // const query = `
-  // SELECT *
-  // FROM properties
-  // LIMIT $1;
-  // `;
-  // return pool 
-  // .query(query, [limit])
-  // .then((result) => {
-  //   return result.rows;
-  // })
-  // .catch((err) => {
-  //   console.error("Error running query: ", err.message);
-  //   throw err;
-  // });
-  const limitedProperties = {};
-  for (let i = 1; i <= limit; i++) {
-    limitedProperties[i] = properties[i];
-  }
-  return Promise.resolve(limitedProperties);
+  return pool 
+  .query(`SELECT * FROM properties LIMIT $1`, [limit])
+  .then((result) => {
+    console.log(result.rows);
+    return result.rows;
+  })
+  .catch((err) => {
+    console.log("Error running query: ", err.message);
+  });
 };
 
 /**
