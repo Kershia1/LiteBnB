@@ -25,7 +25,7 @@ const getUserWithEmail = function (email) {
     .query(`SELECT * FROM users WHERE email = $1`, [email])
     .then((result) => {
       console.log(result.rows);
-      return result.rows[0];// only 1st user with matching email found
+      return result.rows[0];
     })
     .catch((err) => {
       console.log("Error running query: ", err.message);
@@ -48,7 +48,6 @@ const getUserWithId = function (id) {
     .catch((err) => {
       console.log(err.message);
     });
-  // return Promise.resolve(users[id]);
 };
 
 /**
@@ -61,7 +60,7 @@ const addUser = function (user) {
   return pool
     .query(`INSERT INTO users (name, email, password) 
     VALUES ($1,$2,$3) 
-    RETURNING *;`, [user.name, user.email, user.password]) //THIS IS A CLAUSE TO RETURN EXECUTED DATA 
+    RETURNING *;`, [user.name, user.email, user.password])
     .then((results) => {
       return results.rows[0];
     })
@@ -162,7 +161,6 @@ LIMIT $${queryParams.length};
   }
 
   return pool.query(queryString, queryParams)
-    // .query(`SELECT * FROM properties LIMIT $1`, [limit])
     .then((result) => {
       console.log(result.rows);
       return result.rows;
